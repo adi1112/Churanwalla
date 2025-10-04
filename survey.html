@@ -225,55 +225,42 @@
     <footer>© <span id="y"></span> Churanwalla</footer>
   </main>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+<script>
+  document.getElementById('y').textContent = new Date().getFullYear();
 
-    const form = document.getElementById('survey');
-    const statusEl = document.getElementById('formStatus');
+  const form = document.getElementById('survey');
+  const statusEl = document.getElementById('formStatus');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      // Honeypot
-      if (form.company && form.company.value) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (form.company && form.company.value) return; // honeypot
 
-      // Build JSON payload (including checkbox arrays)
-      const payload = {
-        name: form.name.value.trim(),
-        email: form.email.value.trim(),
-        country: form.country.value.trim(),
-        city: form.city.value.trim(),
-        heard: form.heard.value,
-        improve: Array.from(document.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value),
-        candies: Array.from(document.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value),
-        satisfaction: form.satisfaction.value,
-        return_likelihood: form.return.value,
-        comments: form.comments.value.trim(),
-        optin: form.optin.checked ? 'Yes' : 'No',
-        phone: form.phone.value.trim(),
-        userAgent: navigator.userAgent
-      };
+    // Build FormData from the form (keeps improve[] and candies[] arrays)
+    const data = new FormData(form);
 
-      statusEl.className = 'status';
-      try {
-        const resp = await fetch(form.action, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+    // Add userAgent (not in the form by default)
+    data.append('userAgent', navigator.userAgent);
 
-        if (resp.ok) {
-          statusEl.className = 'status ok';
-          statusEl.textContent = 'Thank you! Your feedback has been recorded.';
-          form.reset();
-        } else {
-          statusEl.className = 'status err';
-          statusEl.textContent = 'Hmm, something went wrong. Please try again or email hi@churanwalla.com.';
-        }
-      } catch (err) {
+    statusEl.className = 'status';
+    try {
+      const resp = await fetch(form.action, {
+        method: 'POST',
+        body: data        // <-- no headers set on purpose (simple request)
+      });
+
+      if (resp.ok) {
+        statusEl.className = 'status ok';
+        statusEl.textContent = 'Thank you! Your feedback has been recorded.';
+        form.reset();
+      } else {
         statusEl.className = 'status err';
-        statusEl.textContent = 'Network error. Please try again or email hi@churanwalla.com.';
+        statusEl.textContent = 'Hmm, something went wrong. Please try again or email hi@churanwalla.com.';
       }
-    });
-  </script>
+    } catch (err) {
+      statusEl.className = 'status err';
+      statusEl.textContent = 'Network error. Please try again or email hi@churanwalla.com.';
+    }
+  });
+</script>
 </body>
 </html>
