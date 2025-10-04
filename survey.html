@@ -88,16 +88,23 @@
 
   .hp{ position:absolute; left:-5000px; opacity:0; }
   footer{ text-align:center; margin:14px 0 0; color:var(--muted); font-size:13px }
+.home-logo{ display:inline-block; text-decoration:none; }
+.home-logo img{ display:block; }
+
+
 </style>
 
 </head>
 <body>
-  <main class="wrap">
-    <header>
+<main class="wrap">
+  <header>
+    <a href="index.html" class="home-logo" aria-label="Churanwalla home">
       <img src="logo.png" alt="Churanwalla logo">
-      <h1>Help Bring Churanwalla Back</h1>
-      <p class="lead">We’re an Indian candy store from New Zealand shipping nostalgic 90s treats worldwide. Tell us what to improve if we relaunch!</p>
-    </header>
+    </a>
+    <h1>Help Bring Churanwalla Back</h1>
+    <p class="lead">We’re an Indian candy store from New Zealand shipping nostalgic 90s treats worldwide. Tell us what to improve if we relaunch!</p>
+  </header>
+
 
     <section class="card">
       <!-- Set action to your Google Apps Script Web App URL -->
@@ -226,34 +233,55 @@
   </main>
 
 <script>
+  // Footer year
   document.getElementById('y').textContent = new Date().getFullYear();
 
   const form = document.getElementById('survey');
   const statusEl = document.getElementById('formStatus');
+  const submitBtn = form.querySelector('button[type="submit"]');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (form.company && form.company.value) return; // honeypot
 
+    // Build FormData from form (already includes improve[] & candies[] from HTML)
     const data = new FormData(form);
+
+    // Also send duplicate keys WITHOUT brackets so Apps Script can read arrays via e.parameters
+    const improves = Array.from(document.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value);
+    const candies  = Array.from(document.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value);
+    improves.forEach(v => data.append('improve', v));
+    candies.forEach(v  => data.append('candies', v));
+
+    // Extra info
     data.append('userAgent', navigator.userAgent);
 
+    // UI: prevent double submit
     statusEl.className = 'status';
+    submitBtn.disabled = true;
+    const oldText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending…';
+
     try {
       await fetch(form.action, {
         method: 'POST',
-        mode: 'no-cors',  // send without CORS preflight; response not readable
+        mode: 'no-cors',   // avoid CORS preflight; response is opaque
         body: data
       });
+
       statusEl.className = 'status ok';
       statusEl.textContent = 'Thank you! Your feedback has been recorded.';
       form.reset();
     } catch (err) {
       statusEl.className = 'status err';
       statusEl.textContent = 'Network error. Please try again or email hi@churanwalla.com.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = oldText;
     }
   });
 </script>
+
 
 </body>
 </html>
