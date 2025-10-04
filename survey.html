@@ -101,7 +101,7 @@
 
     <section class="card">
       <!-- Set action to your Google Apps Script Web App URL -->
-      <form id="survey" method="POST" action="https://script.google.com/macros/s/AKfycbwDq7Ngs2RF9_X21RWc3ulZqY0GbnREo7cRnzhtqMr-s614pusQIFA-rEc41IMVAfOg1w/exec">
+      <form id="survey" method="POST" action="https://script.google.com/macros/s/AKfycbx1Gj90taFf5sqO90DNXC19vlJvh2XGCMjBiys_f4uACln4u6PWBsa3FXiEdo9NhLBn/exec">
         <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
 
         <div class="grid grid-2">
@@ -235,32 +235,25 @@
     e.preventDefault();
     if (form.company && form.company.value) return; // honeypot
 
-    // Build FormData from the form (keeps improve[] and candies[] arrays)
     const data = new FormData(form);
-
-    // Add userAgent (not in the form by default)
     data.append('userAgent', navigator.userAgent);
 
     statusEl.className = 'status';
     try {
-      const resp = await fetch(form.action, {
+      await fetch(form.action, {
         method: 'POST',
-        body: data        // <-- no headers set on purpose (simple request)
+        mode: 'no-cors',  // send without CORS preflight; response not readable
+        body: data
       });
-
-      if (resp.ok) {
-        statusEl.className = 'status ok';
-        statusEl.textContent = 'Thank you! Your feedback has been recorded.';
-        form.reset();
-      } else {
-        statusEl.className = 'status err';
-        statusEl.textContent = 'Hmm, something went wrong. Please try again or email hi@churanwalla.com.';
-      }
+      statusEl.className = 'status ok';
+      statusEl.textContent = 'Thank you! Your feedback has been recorded.';
+      form.reset();
     } catch (err) {
       statusEl.className = 'status err';
       statusEl.textContent = 'Network error. Please try again or email hi@churanwalla.com.';
     }
   });
 </script>
+
 </body>
 </html>
