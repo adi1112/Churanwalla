@@ -233,32 +233,36 @@
   </main>
 
 <script>
-  // Footer year
   document.getElementById('y').textContent = new Date().getFullYear();
 
   const form = document.getElementById('survey');
   const statusEl = document.getElementById('formStatus');
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  const uniq = (arr) => [...new Set(arr.map(v => (v ?? '').toString().trim()))];
-
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (form.company && form.company.value) return; // honeypot
 
-    // Build FormData from form (already includes improve[] & candies[] from HTML)
-    const data = new FormData(form);
+    // Collect arrays explicitly
+    const improves = Array.from(form.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value.trim());
+    const candies  = Array.from(form.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value.trim());
 
-    // Also send duplicate keys WITHOUT brackets so Apps Script can read arrays via e.parameters
-    const improves = uniq(Array.from(form.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value));
-    const candies  = uniq(Array.from(form.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value));
-    improves.forEach(v => data.append('improve', v));
-    candies.forEach(v  => data.append('candies', v));
+    const payload = {
+      name: form.name.value.trim(),
+      email: form.email.value.trim(),
+      country: form.country.value.trim(),
+      city: form.city.value.trim(),
+      heard: form.heard.value,
+      improve: improves,                 // arrays preserved
+      candies: candies,                  // arrays preserved
+      satisfaction: form.satisfaction.value,
+      return_likelihood: form.return.value,
+      comments: form.comments.value.trim(),
+      optin: form.optin.checked,
+      phone: form.phone.value.trim(),
+      userAgent: navigator.userAgent
+    };
 
-    // Extra info
-    data.append('userAgent', navigator.userAgent);
-
-    // UI: prevent double submit
     statusEl.className = 'status';
     submitBtn.disabled = true;
     const oldText = submitBtn.textContent;
@@ -267,8 +271,10 @@
     try {
       await fetch(form.action, {
         method: 'POST',
-        mode: 'no-cors',   // avoid CORS preflight; response is opaque
-        body: data
+        // Prefer allowing the normal CORS flow:
+        // (If your browser complains, you can add: mode: 'no-cors', but then you can't read the response.)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       statusEl.className = 'status ok';
@@ -283,5 +289,6 @@
     }
   });
 </script>
+
 </body>
 </html>
