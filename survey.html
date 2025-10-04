@@ -240,6 +240,8 @@
   const statusEl = document.getElementById('formStatus');
   const submitBtn = form.querySelector('button[type="submit"]');
 
+  const uniq = (arr) => [...new Set(arr.map(v => (v ?? '').toString().trim()))];
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (form.company && form.company.value) return; // honeypot
@@ -248,8 +250,8 @@
     const data = new FormData(form);
 
     // Also send duplicate keys WITHOUT brackets so Apps Script can read arrays via e.parameters
-    const improves = Array.from(document.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value);
-    const candies  = Array.from(document.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value);
+    const improves = uniq(Array.from(form.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value));
+    const candies  = uniq(Array.from(form.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value));
     improves.forEach(v => data.append('improve', v));
     candies.forEach(v  => data.append('candies', v));
 
@@ -281,7 +283,5 @@
     }
   });
 </script>
-
-
 </body>
 </html>
