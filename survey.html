@@ -152,32 +152,32 @@
         <fieldset style="margin-top:8px">
           <legend>What should we improve if we return? (select all that apply)</legend>
           <div class="checks">
-            <label><input type="checkbox" name="improve[]" value="Pricing"> Better pricing / deals</label>
-            <label><input type="checkbox" name="improve[]" value="Faster delivery"> Faster delivery</label>
-            <label><input type="checkbox" name="improve[]" value="More selection"> Wider selection (more 90s classics)</label>
-            <label><input type="checkbox" name="improve[]" value="Freshness"> Freshness / expiry visibility</label>
-            <label><input type="checkbox" name="improve[]" value="Bundle deals"> Bundle boxes / gift packs</label>
-            <label><input type="checkbox" name="improve[]" value="Free shipping"> Free shipping threshold</label>
-            <label><input type="checkbox" name="improve[]" value="Payment options"> More payment options (Afterpay/PayPal)</label>
-            <label><input type="checkbox" name="improve[]" value="Packaging"> Better packaging</label>
-            <label><input type="checkbox" name="improve[]" value="Local pickup"> Local pickup / retail partner</label>
-            <label><input type="checkbox" name="improve[]" value="Subscription"> Monthly subscription box</label>
-            <label><input type="checkbox" name="improve[]" value="Limited editions"> Seasonal / limited editions</label>
-            <label><input type="checkbox" name="improve[]" value="Loyalty"> Loyalty points & rewards</label>
+            <label><input type="checkbox" name="improve" value="Pricing"> Better pricing / deals</label>
+            <label><input type="checkbox" name="improve" value="Faster delivery"> Faster delivery</label>
+            <label><input type="checkbox" name="improve" value="More selection"> Wider selection (more 90s classics)</label>
+            <label><input type="checkbox" name="improve" value="Freshness"> Freshness / expiry visibility</label>
+            <label><input type="checkbox" name="improve" value="Bundle deals"> Bundle boxes / gift packs</label>
+            <label><input type="checkbox" name="improve" value="Free shipping"> Free shipping threshold</label>
+            <label><input type="checkbox" name="improve" value="Payment options"> More payment options (Afterpay/PayPal)</label>
+            <label><input type="checkbox" name="improve" value="Packaging"> Better packaging</label>
+            <label><input type="checkbox" name="improve" value="Local pickup"> Local pickup / retail partner</label>
+            <label><input type="checkbox" name="improve" value="Subscription"> Monthly subscription box</label>
+            <label><input type="checkbox" name="improve" value="Limited editions"> Seasonal / limited editions</label>
+            <label><input type="checkbox" name="improve" value="Loyalty"> Loyalty points & rewards</label>
           </div>
         </fieldset>
 
         <fieldset style="margin-top:8px">
           <legend>Which candies did you love / want us to stock? (select all that apply)</legend>
           <div class="checks">
-            <label><input type="checkbox" name="candies[]" value="Kaccha Mango Bite"> Kaccha Mango Bite</label>
-            <label><input type="checkbox" name="candies[]" value="Pulse (Kachcha Aam / Others)"> Pulse (Kachcha Aam / others)</label>
-            <label><input type="checkbox" name="candies[]" value="Hajmola / Imli"> Hajmola / Imli</label>
-            <label><input type="checkbox" name="candies[]" value="Center Shock / Center Fresh"> Center Shock / Center Fresh</label>
-            <label><input type="checkbox" name="candies[]" value="Eclairs / Melody"> Eclairs / Melody</label>
-            <label><input type="checkbox" name="candies[]" value="Poppins / Rol-a-Cola"> Poppins / Rol-a-Cola</label>
-            <label><input type="checkbox" name="candies[]" value="Paan & Saunf mixes"> Paan & Saunf mixes</label>
-            <label><input type="checkbox" name="candies[]" value="Other 90s classics"> Other 90s classics</label>
+            <label><input type="checkbox" name="candies" value="Kaccha Mango Bite"> Kaccha Mango Bite</label>
+            <label><input type="checkbox" name="candies" value="Pulse (Kachcha Aam / Others)"> Pulse (Kachcha Aam / others)</label>
+            <label><input type="checkbox" name="candies" value="Hajmola / Imli"> Hajmola / Imli</label>
+            <label><input type="checkbox" name="candies" value="Center Shock / Center Fresh"> Center Shock / Center Fresh</label>
+            <label><input type="checkbox" name="candies" value="Eclairs / Melody"> Eclairs / Melody</label>
+            <label><input type="checkbox" name="candies" value="Poppins / Rol-a-Cola"> Poppins / Rol-a-Cola</label>
+            <label><input type="checkbox" name="candies" value="Paan & Saunf mixes"> Paan & Saunf mixes</label>
+            <label><input type="checkbox" name="candies" value="Other 90s classics"> Other 90s classics</label>
           </div>
         </fieldset>
 
@@ -193,7 +193,7 @@
           <div>
             <label for="return">How likely are you to buy again if we return?</label>
             <div class="range">
-              <input id="return" name="return_likelihood" type="range" min="0" max="10" value="8">
+              <input id="returnLik" name="return_likelihood" type="range" min="0" max="10" value="8">
               <div class="scale"><span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span></div>
               <div class="help">0 = Not at all, 10 = Definitely</div>
             </div>
@@ -239,13 +239,14 @@
   const statusEl = document.getElementById('formStatus');
   const submitBtn = form.querySelector('button[type="submit"]');
 
+  // helper: collect all checked values for a given name
+  const getChecked = (name) =>
+    Array.from(form.querySelectorAll(`input[name="${name}"]:checked`))
+         .map(el => el.value.trim());
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (form.company && form.company.value) return; // honeypot
-
-    // Collect arrays explicitly
-    const improves = Array.from(form.querySelectorAll('input[name="improve[]"]:checked')).map(el => el.value.trim());
-    const candies  = Array.from(form.querySelectorAll('input[name="candies[]"]:checked')).map(el => el.value.trim());
 
     const payload = {
       name: form.name.value.trim(),
@@ -253,10 +254,13 @@
       country: form.country.value.trim(),
       city: form.city.value.trim(),
       heard: form.heard.value,
-      improve: improves,                 // arrays preserved
-      candies: candies,                  // arrays preserved
+
+      // arrays preserved exactly as arrays
+      improve: getChecked('improve'),
+      candies: getChecked('candies'),
+
       satisfaction: form.satisfaction.value,
-      return_likelihood: form.return.value,
+      return_likelihood: document.getElementById('returnLik').value,
       comments: form.comments.value.trim(),
       optin: form.optin.checked,
       phone: form.phone.value.trim(),
@@ -271,9 +275,7 @@
     try {
       await fetch(form.action, {
         method: 'POST',
-        // Prefer allowing the normal CORS flow:
-        // (If your browser complains, you can add: mode: 'no-cors', but then you can't read the response.)
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }, // JSON only
         body: JSON.stringify(payload)
       });
 
@@ -289,6 +291,7 @@
     }
   });
 </script>
+
 
 </body>
 </html>
